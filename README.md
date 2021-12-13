@@ -8,7 +8,7 @@ Module: /* finished */
     Take paf file and edge filter parameters as inputs and output paf file with
     edges filtered.
 
-Module:
+Module: /* finished */
     Take paf file as input and produce gml graph file.
 
 Module:

@@ -4,7 +4,7 @@ filter_overlaps: filter_overlaps.c
 	clang -O2 -o $@ $<
 
 paf2gml: paf2gml.cpp
-	clang++ -std=c++11 -o $@ $<
+	clang++ -O2 -std=c++11 -o $@ $<
 
 clean:
 	rm -f filter_overlaps paf2gml
