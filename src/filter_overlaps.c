@@ -8,7 +8,7 @@
 int main(int argc, char *argv[])
 {
     if (argc != 4) {
-        fprintf(stderr, "usage: ./filter_overlaps [input paf] [max overhang length] [overhang to mapping length ratio]\n");
+        fprintf(stderr, "usage: ./filter_overlaps <input.paf> <max overhang length> <overhang to mapping length ratio]\n");
         return 1;
     }
 
