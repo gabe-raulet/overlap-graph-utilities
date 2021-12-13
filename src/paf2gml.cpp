@@ -4,21 +4,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <algorithm>
-#include <cmath>
-
-struct ReadNode {
-    int id;
-    std::string name, species;
-
-    ReadNode(int id, std::string name, std::string species) : id(id), name(name), species(species) {}
-
-    friend std::ostream& operator<<(std::ostream&os, ReadNode n)
-    {
-        os << "\tnode\n\t[\n\t\tid " << n.id << "\n\t\tname \"" << n.name << "\"\n\t\tspecies \"" << n.species << "\"\n\t]";
-        return os;
-    }
-};
 
 struct ReadEdge {
     int qid, tid, qlen, tlen, nalign, nblock, cross;
@@ -39,78 +24,64 @@ struct ReadEdge {
 
 int main(int argc, char *argv[])
 {
-    if (argc != 5) {
-        std::cerr << "usage: ./parse_overlaps <minimap2.paf> <read.vs.species.tsv> [max overhang length] [overhang to mapping length ratio]" << std::endl;
-        return 1;
-    }
-
-    std::ifstream overlap_stream(argv[1]);
-    std::ifstream readmap_stream(argv[2]);
-    const int overhang_length = atoi(argv[3]);
-    const double ratio = atof(argv[4]);
-
-    bool write_through = (fabs(ratio) < 1e-5 || overhang_length == 0);
-
-    ///if (ratio <= 0 || ratio > 1) {
-    ///    std::cerr << "error: overhang to mapping ratio must be in the interval (0, 1]" << std::endl;
-    ///    return 1;
-    ///}
-
-    std::unordered_map<std::string, int> idmap;
-    std::unordered_map<int, std::string> readmap;
-
-    std::vector<ReadNode> nodes;
     std::vector<ReadEdge> edges;
-
-    std::string line, readname, speciesname;
-
-    int id = 0;
-    while (getline(readmap_stream, line)) {
-        std::istringstream record(line);
-        record >> readname >> speciesname;
-        idmap[readname] = id;
-        readmap[id] = speciesname;
-        nodes.push_back(ReadNode(id, readname, speciesname));
-        ++id;
-    }
-
-    readmap_stream.close();
-
-    std::string qreadname, treadname, divergence;
-    int l1, l2, b1, b2, e1, e2, nalign, nblock;
+    std::unordered_map<std::string, int> read_idxs;
+    std::string line, qreadname, treadname, divergence, qid, tid, qspecies, tspecies, dummy;
+    int idx, nalign, nblock, cross, qlen, tlen;
     char strand;
     float dv;
 
-    std::string dv_delim = "dv:f:";
-
-    while (getline(overlap_stream, line)) {
-        std::istringstream record(line);
-        record >> qreadname >> l1 >> b1 >> e1 >> strand >> treadname >> l2 >> b2 >> e2 >> nalign >> nblock;
-        std::istringstream(line.substr(line.find(dv_delim) + dv_delim.size(), line.size())) >> dv;
-
-        int overhang = std::min(b1, b2) + std::min(l1 - e1, l2 - e2);
-        int maplen = std::max(e1 - b1, e2 - b2);
-
-        if (!write_through && overhang > std::min((double)overhang_length, (maplen+0.0)*ratio)) continue;
-
-        int qid = idmap[qreadname];
-        int tid = idmap[treadname];
-        int cross = (readmap[qid] == readmap[tid]) ? 0 : 1;
-        edges.push_back(ReadEdge(qid, tid, l1, l2, nalign, nblock, strand, dv, cross));
-    }
-
-    overlap_stream.close();
-
     std::cout << "graph\n[\n\tdirected 0\n";
 
-    for (auto itr = nodes.begin(); itr != nodes.end(); itr++)
-        std::cout << *itr << std::endl;
+    idx = 0;
+
+    while (getline(std::cin, line)) {
+        std::istringstream record(line);
+
+        record >> qreadname
+               >> qlen
+               >> dummy >> dummy
+               >> strand
+               >> treadname
+               >> tlen
+               >> dummy >> dummy
+               >> nalign
+               >> nblock
+               >> dummy >> dummy >> dummy >> dummy
+               >> divergence;
+
+        dv = std::atof(divergence.substr(5, divergence.size()).c_str()); /* magic number 5 is length of "dv:f:" */
+
+        int qsplit = qreadname.find("|");
+        int tsplit = treadname.find("|");
+
+        qid = qreadname.substr(0, qsplit);
+        tid = treadname.substr(0, tsplit);
+
+        qspecies = qreadname.substr(qsplit+1, qreadname.size());
+        tspecies = treadname.substr(tsplit+1, treadname.size());
+
+        cross = (qspecies == tspecies)? 0 : 1;
+
+        if (read_idxs.find(qid) == read_idxs.end()) {
+            std::cout << "\tnode\n\t[\n\t\tid " << idx << "\n\t\tname \"" << qid << "\"\n\t\tspecies \"" << qspecies << "\"\n\t]\n";
+            read_idxs.insert(std::make_pair(qid, idx++));
+        }
+
+        if (read_idxs.find(tid) == read_idxs.end()) {
+            std::cout << "\tnode\n\t[\n\t\tid " << idx << "\n\t\tname \"" << tid << "\"\n\t\tspecies \"" << qspecies << "\"\n\t]\n";
+            read_idxs.insert(std::make_pair(tid, idx++));
+        }
+
+        edges.push_back(ReadEdge(read_idxs.find(qid)->second, read_idxs.find(tid)->second, qlen, tlen, nalign, nblock, strand, dv, cross));
+
+    }
 
     for (auto itr = edges.begin(); itr != edges.end(); itr++)
         std::cout << *itr << std::endl;
 
     std::cout << "]" << std::endl;
 
-
     return 0;
 }
+
