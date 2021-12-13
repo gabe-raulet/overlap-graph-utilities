@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     char *lineptr = NULL;
     char processed[2048];
 
-    char qreadname[32], treadname[32], strand, *end;
+    char qreadname[128], treadname[128], strand, *end;
     int l1, b1, e1, l2, b2, e2, d1, d2, d3;
     while ((nread = getline(&lineptr, &size, ifp) != -1)) {
         strcpy(processed, lineptr);
