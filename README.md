@@ -1,6 +1,6 @@
 Will use a collection of modules to handle this problem.
 
-Module:
+Module: /* finished */
     Take a fasta file with species info included in each read's header as
     input, output paf alignments.
 

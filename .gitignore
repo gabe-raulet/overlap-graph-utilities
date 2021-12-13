@@ -1,5 +1,7 @@
 example-data
 filter_overlaps
 paf2gml
+
 *.gml
 *.swp
+*.paf
