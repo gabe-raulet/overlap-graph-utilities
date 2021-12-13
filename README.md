@@ -4,7 +4,7 @@ Module:
     Take a fasta file with species info included in each read's header as
     input, output paf alignments.
 
-Module:
+Module: /* finished */
     Take paf file and edge filter parameters as inputs and output paf file with
     edges filtered.
 
