@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
      *     "seqtk seq -l0 original.fa > in.fa"
      */
     if (argc != 3) {
-        std::cerr << "usage: ./subsample <in.fa> <idmap.tsv>" << std::endl;
+        std::cerr << "usage: subsample <in.fa> <idmap.tsv>" << std::endl;
         return -1;
     }
 
