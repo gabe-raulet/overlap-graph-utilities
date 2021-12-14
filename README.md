@@ -14,3 +14,7 @@ Module: /* finished */
 Module:
     Take fasta file and read.vs.species map to produce fasta file with species
     info included in header.
+
+Module:
+    Take fasta file and reads.vs.species map (could be sample of reads from fasta)
+    and create sampled fasta file and reads.vs.species map that corresponds.
